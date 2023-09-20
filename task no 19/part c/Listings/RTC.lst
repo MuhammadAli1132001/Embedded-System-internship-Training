@@ -1,0 +1,261 @@
+C51 COMPILER V9.60.7.0   RTC                                                               08/23/2023 20:38:07 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE RTC
+OBJECT MODULE PLACED IN .\Objects\RTC.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE RTC.c LARGE OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings
+                    -\RTC.lst) TABS(2) OBJECT(.\Objects\RTC.obj)
+
+line level    source
+
+   1          #include <reg51.h>
+   2          #include "lcd.h"
+   3          #include <intrins.h>
+   4          #include <stdio.h>
+   5          #include "RTC.h"
+   6          
+   7          sbit DS1302_CE = P3^5; // DS1302 chip enable pin
+   8          sbit DS1302_CLK = P3^6; // DS1302 clock pin
+   9          sbit DS1302_IO = P3^4; // DS1302 data I/O pin
+  10          
+  11          
+  12          
+  13          void  processRealTimeClock()
+  14           {
+  15   1          unsigned int hour, minute, second;
+  16   1          unsigned char day, month, year;
+  17   1          char timeString[9];
+  18   1          int datestring[12]; 
+  19   1          unsigned char decimalSecond;  
+  20   1          unsigned char decimalMinute;
+  21   1          unsigned char decimalHour;
+  22   1        
+  23   1          lcd_init();         // Initialize the LCD
+  24   1          DS1302_init();        // Initialize ds1302
+  25   1        
+  26   1           // Set initial time and date
+  27   1           DS1302_SetTime(11, 03, 01); 
+  28   1           //DS1302_SetDate(10, 11, 2001); 
+  29   1      
+  30   1          while (1)
+  31   1          {   
+  32   2      
+  33   2              // Read time from DS1302
+  34   2              DS1302_GetTime(&hour, &minute, &second);
+*** WARNING C182 IN LINE 34 OF RTC.c: pointer to different objects
+*** WARNING C182 IN LINE 34 OF RTC.c: pointer to different objects
+*** WARNING C182 IN LINE 34 OF RTC.c: pointer to different objects
+  35   2              DS1302_GetDate(&day, &month, &year);
+  36   2              
+  37   2              decimalHour = (hour >> 4) * 10 + (hour & 0x0F);
+  38   2              decimalMinute = (minute >> 4) * 10 + (minute & 0x0F);
+  39   2              decimalSecond = (second >> 4) * 10 + (second & 0x0F);
+  40   2      
+  41   2              sprintf(timeString, "%02u:%02u:%02u", hour, minute, decimalSecond);
+  42   2             // lcd_clear();
+  43   2              lcd_set_cursor(0, 0);
+  44   2              //lcd_write_string("Time:");
+  45   2              //lcd_set_cursor(0, 5);
+  46   2              lcd_write_string(timeString);          // Display the time on the LCD
+  47   2              
+  48   2            
+  49   2              // Format the date string
+  50   2              sprintf(datestring, "%02u:%02u:%04u", day, month, year);
+*** WARNING C182 IN LINE 50 OF RTC.c: pointer to different objects
+C51 COMPILER V9.60.7.0   RTC                                                               08/23/2023 20:38:07 PAGE 2   
+
+  51   2             
+  52   2              lcd_set_cursor(1, 0);
+  53   2              lcd_write_string("Date:");
+  54   2              lcd_set_cursor(1, 5);
+  55   2              lcd_write_string(datestring);
+*** WARNING C182 IN LINE 55 OF RTC.c: pointer to different objects
+  56   2      
+  57   2                delay_ms(1000);                                // Wait for one second
+  58   2      
+  59   2          }
+  60   1      }
+  61          
+  62          
+  63          void DS1302_init()
+  64          {
+  65   1        
+  66   1        DS1302_CE = 0;
+  67   1        DS1302_IO = 1;
+  68   1        DS1302_CLK = 0;
+  69   1        
+  70   1      }
+  71          
+  72          // Function to send a bit to the DS1302
+  73          void Send_Bit(unsigned int bitt)
+  74          {
+  75   1          if(bitt==1)
+  76   1            {
+  77   2          
+  78   2            DS1302_IO = 1;
+  79   2          }
+  80   1          else
+  81   1            {
+  82   2            DS1302_IO = 0;
+  83   2          }
+  84   1      }
+  85          
+  86          // Function to generate a clock pulse
+  87          void SCLK_Pulse()
+  88          {
+  89   1          DS1302_CLK = 1;
+  90   1          _nop_();
+  91   1          _nop_();
+  92   1          DS1302_CLK = 0;
+  93   1          _nop_();
+  94   1          _nop_();
+  95   1      }
+  96          
+  97          
+  98          void write_byte(unsigned int byte)
+  99          {
+ 100   1          unsigned char i, Bit;
+ 101   1          
+ 102   1          for (i = 0; i < 8; i++)
+ 103   1          {
+ 104   2              DS1302_CLK = 0;
+ 105   2              Bit = byte & (1 << i); // Get each bit
+ 106   2              Send_Bit(Bit);         // Send the bit
+ 107   2              SCLK_Pulse();        // Generate clock pulse
+ 108   2              DS1302_CLK = 1;
+ 109   2          }
+ 110   1      }
+ 111          
+C51 COMPILER V9.60.7.0   RTC                                                               08/23/2023 20:38:07 PAGE 3   
+
+ 112          
+ 113          // Function to write a byte to the DS1302unsigned char cmd,
+ 114          void DS1302_WriteByte(unsigned int cmd, unsigned int Value)
+ 115          {
+ 116   1          DS1302_CE = 1;
+ 117   1          DS1302_CLK = 0;
+ 118   1        
+ 119   1          write_byte(cmd);
+ 120   1          write_byte(Value);
+ 121   1      
+ 122   1          DS1302_CE = 1;
+ 123   1          DS1302_CLK = 1;
+ 124   1      }
+ 125          
+ 126          void read_byte(unsigned int cmd)
+ 127          {
+ 128   1            unsigned int j,Bit;
+ 129   1      
+ 130   1           for (j = 0; j < 8; j++)
+ 131   1          {     
+ 132   2          DS1302_CLK = 1;
+ 133   2            
+ 134   2              Bit = cmd & (1 << j);       // Get each bit of cmd
+ 135   2              Send_Bit(Bit);             // Send the bit
+ 136   2              SCLK_Pulse();             // Generate clock pulse
+ 137   2              DS1302_CLK = 0;
+ 138   2      
+ 139   2          }
+ 140   1          
+ 141   1          
+ 142   1        }
+ 143          // Function to read a byte from the DS1302
+ 144          unsigned int DS1302_ReadByte(unsigned int cmd)
+ 145          {
+ 146   1          unsigned int dat=0, j;
+ 147   1          DS1302_CE =1;
+ 148   1          DS1302_CLK = 1;
+ 149   1        
+ 150   1          write_byte(cmd);
+ 151   1      
+ 152   1          // Receive the data byte
+ 153   1          for (j = 0; j < 8; j++)
+ 154   1          {
+ 155   2              dat >>= 1;
+ 156   2              if (DS1302_IO)
+ 157   2              {
+ 158   3                  dat |= 0x80;     // Set the corresponding bit in R
+ 159   3              }
+ 160   2              else
+ 161   2              {
+ 162   3                  dat &= 0x7F;    // Clear the corresponding bit in R
+ 163   3              }
+ 164   2      
+ 165   2              SCLK_Pulse();       // Generate clock pulse
+ 166   2          }
+ 167   1      
+ 168   1          DS1302_CE = 1;
+ 169   1          DS1302_CLK = 0;
+ 170   1      
+ 171   1          DS1302_IO = 0; // Set the I/O pin back to output mode
+ 172   1      
+ 173   1          return dat;
+C51 COMPILER V9.60.7.0   RTC                                                               08/23/2023 20:38:07 PAGE 4   
+
+ 174   1      }
+ 175          
+ 176          
+ 177          
+ 178          void DS1302_SetTime(unsigned int hour, unsigned int minute, unsigned int second)
+ 179          {
+ 180   1           
+ 181   1        
+ 182   1          DS1302_WriteByte(0x8E,0x00); // Control Register Address, Write mode
+ 183   1          //DS1302_WriteByte(0x80,0x80); // Seconds Register Address, Write mode
+ 184   1          DS1302_WriteByte(DS1302_SECONDS,second);
+ 185   1          DS1302_WriteByte(DS1302_MINUTES,minute);
+ 186   1          DS1302_WriteByte(DS1302_HOURS,hour);
+ 187   1              
+ 188   1      }
+ 189          
+ 190          
+ 191          
+ 192          // Function to read the time from DS1302
+ 193          void DS1302_GetTime(unsigned int *hour, unsigned int *minute, unsigned int *second)
+ 194          {
+*** WARNING C235 IN LINE 194 OF RTC.c: parameter 1: different types
+*** WARNING C235 IN LINE 194 OF RTC.c: parameter 2: different types
+*** WARNING C235 IN LINE 194 OF RTC.c: parameter 3: different types
+ 195   1           //DS1302_ReadByte();
+ 196   1          *second = DS1302_ReadByte(DS1302_SECONDS);
+ 197   1          *minute = DS1302_ReadByte(DS1302_MINUTES);
+ 198   1          *hour = DS1302_ReadByte(DS1302_HOURS);
+ 199   1      }
+ 200          
+ 201          // Function to set the date in DS1302
+ 202          void DS1302_SetDate(unsigned int day, unsigned int month, unsigned int year)
+ 203          {
+*** WARNING C235 IN LINE 203 OF RTC.c: parameter 1: different types
+*** WARNING C235 IN LINE 203 OF RTC.c: parameter 2: different types
+*** WARNING C235 IN LINE 203 OF RTC.c: parameter 3: different types
+ 204   1        
+ 205   1          DS1302_WriteByte(DS1302_DAY, day);
+ 206   1          DS1302_WriteByte(DS1302_MONTH, month);
+ 207   1          DS1302_WriteByte(DS1302_YEAR, year);
+ 208   1      }
+ 209          
+ 210          
+ 211          //// Function to read the date from DS1302
+ 212          //void DS1302_GetDate(unsigned char *day, unsigned char *month, unsigned char *year)
+ 213          //{
+ 214          //    *day = DS1302_ReadByte(DS1302_DATE);
+ 215          //    *month = DS1302_ReadByte(DS1302_MONTH);
+ 216          //    *year = DS1302_ReadByte(DS1302_YEAR);
+ 217          //}
+ 218          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    779    ----
+   CONSTANT SIZE    =     36    ----
+   XDATA SIZE       =   ----      66
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+C51 COMPILER V9.60.7.0   RTC                                                               08/23/2023 20:38:07 PAGE 5   
+
+
+C51 COMPILATION COMPLETE.  11 WARNING(S),  0 ERROR(S)

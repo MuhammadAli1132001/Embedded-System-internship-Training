@@ -1,0 +1,199 @@
+C51 COMPILER V9.60.7.0   TEMPRATURE_MONITOR                                                08/23/2023 20:38:07 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE TEMPRATURE_MONITOR
+OBJECT MODULE PLACED IN .\Objects\temprature_monitor.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE temprature_monitor.c LARGE OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND P
+                    -RINT(.\Listings\temprature_monitor.lst) TABS(2) OBJECT(.\Objects\temprature_monitor.obj)
+
+line level    source
+
+   1          #include <reg51.h>
+   2          #include "lcd.h"
+   3          #include <intrins.h>
+   4          #include <stdio.h>
+   5          #include "temp.h"
+   6          
+   7          sbit ds18b20 = P3^7; // Define the 1-wire bus pin connection
+   8          
+   9          
+  10          void  processTemperatureMonitor(){
+  11   1         float temperature;
+  12   1         char temperatureString[10];
+  13   1        
+  14   1         lcd_init();
+  15   1      
+  16   1        while(1)
+  17   1          {
+  18   2      
+  19   2            //init_ds18b20();
+  20   2                    
+  21   2            temperature = readTemperature();
+  22   2            sprintf(temperatureString, "%.2f", temperature);
+  23   2            
+  24   2            //clear_lcd();
+  25   2            lcd_set_cursor(0,0);
+  26   2            lcd_write_string("tempreture");
+  27   2            
+  28   2            lcd_set_cursor(1,0);
+  29   2            lcd_write_string(temperatureString);
+  30   2            delay_ms(1000);
+  31   2        }
+  32   1        
+  33   1      }
+  34          
+  35          unsigned char reset()
+  36          {
+  37   1            unsigned char presence=0;
+  38   1            
+  39   1            ds18b20 = 1;
+  40   1            delay_us(8);
+  41   1            
+  42   1            ds18b20 = 0;
+  43   1            delay_us(80);
+  44   1      
+  45   1            ds18b20 = 1;
+  46   1            delay_us(14);
+  47   1      
+  48   1          presence = ds18b20;
+  49   1             delay_us(20);
+  50   1      
+  51   1            return presence;
+  52   1      }
+  53          
+  54          
+C51 COMPILER V9.60.7.0   TEMPRATURE_MONITOR                                                08/23/2023 20:38:07 PAGE 2   
+
+  55          void ow_write_bit(unsigned char Bit)
+  56           {
+  57   1           ds18b20 = 0;   
+  58   1            delay_us(2);
+  59   1         
+  60   1             ds18b20 = Bit;   
+  61   1      
+  62   1           ds18b20 = 1;
+  63   1            delay_us(65);
+  64   1        } 
+  65              
+  66          
+  67          
+  68          unsigned char ow_read_bit()
+  69          {
+  70   1          unsigned char bit_value=0;
+  71   1      
+  72   1          ds18b20 = 0;
+  73   1               delay_us(15);
+  74   1      
+  75   1          ds18b20 = 1;
+  76   1               delay_us(15);
+  77   1        
+  78   1          bit_value = ds18b20;
+  79   1               //delay_us(60);
+  80   1      
+  81   1          return bit_value;
+  82   1      }
+  83          
+  84          void ow_write_byte(unsigned char byte)
+  85          {
+  86   1          unsigned char i;
+  87   1      
+  88   1          for (i = 0; i < 8; i++)
+  89   1          {
+  90   2            
+  91   2              ow_write_bit(byte & 0x01); 
+  92   2      
+  93   2              byte >>= 1;
+  94   2          }
+  95   1          delay_us(4);
+  96   1      
+  97   1      }
+  98          
+  99          unsigned char ow_read_byte()
+ 100          {
+ 101   1          unsigned char i, byte_value = 0;
+ 102   1      
+ 103   1          for (i = 0; i < 8; i++)
+ 104   1          {
+ 105   2           // ds18b20 = 0;
+ 106   2      
+ 107   2            byte_value >>= 1;
+ 108   2            //ds18b20 = 1;
+ 109   2      
+ 110   2              if (ow_read_bit())
+ 111   2              {
+ 112   3                  byte_value |= 0x80;
+ 113   3                  delay_us(5);
+ 114   3      
+ 115   3              }
+ 116   2          }
+C51 COMPILER V9.60.7.0   TEMPRATURE_MONITOR                                                08/23/2023 20:38:07 PAGE 3   
+
+ 117   1      
+ 118   1          return byte_value;
+ 119   1      }
+ 120          
+ 121          float readTemperature()
+ 122          {
+ 123   1          unsigned char temp_lsb, temp_msb;
+ 124   1          float temperature;
+ 125   1          int temp_val;
+ 126   1         char temp_buffer[2];
+ 127   1      
+ 128   1           reset();
+ 129   1      //    {
+ 130   1      //       
+ 131   1      //        return -9.0;  // Presence pulse not detected Return an error
+ 132   1      //    }
+ 133   1      
+ 134   1          ow_write_byte(0xCC);
+ 135   1          ow_write_byte(0x44);
+ 136   1      
+ 137   1          delay_ms(750);    //750 ms for 12-bit resolution
+ 138   1      
+ 139   1          reset();
+ 140   1      
+ 141   1          ow_write_byte(0xCC);
+ 142   1          ow_write_byte(0xBE);    // Read Scratchpad
+ 143   1      
+ 144   1      
+ 145   1          // Read the temperature data (LSB and MSB)
+ 146   1          temp_buffer[0] = ow_read_byte();
+ 147   1          temp_buffer[1] = ow_read_byte();
+ 148   1      
+ 149   1          temp_val = (temp_buffer[0] << 8) | temp_buffer[1];                          //  temperature value cal
+ 150   1          temp_val = (0x02 << 8) | 0x01;                          //  temperature value cal
+ 151   1      
+ 152   1           temperature = (float)temp_val * 0.0625;                      // Convert the raw temperature value to 
+             -Celsius
+ 153   1      
+ 154   1      
+ 155   1          return temperature;
+ 156   1      }
+*** WARNING C280 IN LINE 123 OF temprature_monitor.c: 'temp_lsb': unreferenced local variable
+*** WARNING C280 IN LINE 123 OF temprature_monitor.c: 'temp_msb': unreferenced local variable
+ 157          
+ 158          
+ 159          void delay_us(unsigned int us)
+ 160          {
+ 161   1      
+ 162   1          while(us--)
+ 163   1            {
+ 164   2              _nop_();
+ 165   2          }
+ 166   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    396    ----
+   CONSTANT SIZE    =     16    ----
+   XDATA SIZE       =   ----      24
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+C51 COMPILER V9.60.7.0   TEMPRATURE_MONITOR                                                08/23/2023 20:38:07 PAGE 4   
+
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  2 WARNING(S),  0 ERROR(S)

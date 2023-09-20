@@ -1,0 +1,207 @@
+C51 COMPILER V9.60.7.0   EEPROM                                                            08/17/2023 15:50:47 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE EEPROM
+OBJECT MODULE PLACED IN .\Objects\EEPROM.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE EEPROM.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\EE
+                    -PROM.lst) TABS(2) OBJECT(.\Objects\EEPROM.obj)
+
+line level    source
+
+   1          #include <reg51.h>
+   2          #include <intrins.h>
+   3          #include "LCDh.h"
+   4          #include <stdio.h>
+   5          
+   6          
+   7          #define EEPROM_ADDRESS 0xA0
+   8          #define PAGE_SIZE 64
+   9          
+  10          
+  11          sbit SCL = P2^1; // I2C Clock pin
+  12          sbit SDA = P2^0; // I2C Data pin
+  13          sbit WE = P2^2; // I2C Data pin
+  14          
+  15          
+  16          void I2C_Init();
+  17          void I2C_Start();
+  18          void I2C_Stop();
+  19          void I2C_Write(unsigned char dat);
+  20          unsigned char I2C_ReadACK();
+  21          unsigned char I2C_ReadNACK();
+  22          
+  23          void EEPROM_WriteByte(unsigned int address, unsigned char Data);
+  24          unsigned char EEPROM_ReadByte(unsigned int address);
+  25          
+  26          
+  27          
+  28          void main() {
+  29   1          unsigned char data_write = 0x0A;
+  30   1          unsigned char data_read;
+  31   1          char data_read_string[4];           // Assuming the data_read value is between 0 and 255
+  32   1          
+  33   1          I2C_Init();
+  34   1          lcd_init();
+  35   1          
+  36   1          while(1){
+  37   2            
+  38   2        
+  39   2      
+  40   2          EEPROM_WriteByte(0x0001, data_write);           // Write data to EEPROM at address 0x0100
+  41   2      
+  42   2      
+  43   2          data_read = EEPROM_ReadByte(0x0001);          // Read data from EEPROM at address 0x0100
+  44   2      
+  45   2      
+  46   2          if (data_write == data_read) {                       // Data match
+  47   3      
+  48   3              
+  49   3          }
+  50   2          
+  51   2          else {                                                // Data mismatch
+  52   3        
+  53   3        
+  54   3         }
+C51 COMPILER V9.60.7.0   EEPROM                                                            08/17/2023 15:50:47 PAGE 2   
+
+  55   2       }
+  56   1      }
+*** WARNING C280 IN LINE 31 OF EEPROM.c: 'data_read_string': unreferenced local variable
+  57          
+  58          
+  59          // I2C Initialization
+  60          void I2C_Init() {
+  61   1          SDA = 1;
+  62   1          SCL = 1;
+  63   1      }
+  64          
+  65          // I2C Start condition
+  66          void I2C_Start() {
+  67   1          SDA = 1;
+  68   1          _nop_();
+  69   1          SCL = 1;
+  70   1          _nop_();
+  71   1          SDA = 0;
+  72   1          _nop_();
+  73   1          SCL = 0;
+  74   1          _nop_();_nop_();
+  75   1      
+  76   1      }
+  77          
+  78          // I2C Stop condition
+  79          void I2C_Stop() {
+  80   1          SDA = 0;
+  81   1          _nop_(); _nop_();
+  82   1            SDA = 0;
+  83   1          _nop_();_nop_();
+  84   1      
+  85   1          SCL = 1;
+  86   1          _nop_();_nop_();
+  87   1      
+  88   1          SDA = 1;
+  89   1          _nop_();_nop_();
+  90   1      
+  91   1      }
+  92          
+  93          
+  94          void I2C_Write(unsigned char dat) {
+  95   1          unsigned char i;
+  96   1          WE = 0;
+  97   1        
+  98   1          for (i = 0; i < 8; i++) {
+  99   2              SDA = (dat & 0x80) ? 1 : 0;
+ 100   2              _nop_();  _nop_();
+ 101   2      
+ 102   2              SCL = 1;
+ 103   2              _nop_();  _nop_();
+ 104   2      
+ 105   2              SCL = 0;
+ 106   2              dat <<= 1;
+ 107   2      
+ 108   2          }
+ 109   1      
+ 110   1          // Wait for ACK from the slave
+ 111   1          SDA = 1;
+ 112   1          _nop_();
+ 113   1          SCL = 1;
+ 114   1          while (SDA);                          // Wait for ACK
+ 115   1          SCL = 0;
+C51 COMPILER V9.60.7.0   EEPROM                                                            08/17/2023 15:50:47 PAGE 3   
+
+ 116   1      }
+ 117          
+ 118          unsigned char I2C_ReadACK() {
+ 119   1          unsigned char i, dat = 0;
+ 120   1          
+ 121   1          SDA = 1;
+ 122   1          for (i = 0; i < 8; i++) {
+ 123   2              _nop_();
+ 124   2              SCL = 1;
+ 125   2              _nop_();
+ 126   2              dat = (dat << 1) | SDA;
+ 127   2              SCL = 0;
+ 128   2          }
+ 129   1      
+ 130   1          SDA = 0;                         // Send ACK
+ 131   1          _nop_();
+ 132   1          SCL = 1;
+ 133   1          _nop_();
+ 134   1          SCL = 0;
+ 135   1          return dat;
+ 136   1      }
+ 137          
+ 138          
+ 139          
+ 140          void EEPROM_WriteByte(unsigned char address, unsigned char Data) {
+*** WARNING C235 IN LINE 140 OF EEPROM.c: parameter 1: different types
+ 141   1          unsigned char page_address = address / PAGE_SIZE;
+ 142   1          unsigned char page_offset = address % PAGE_SIZE;
+ 143   1      
+ 144   1          I2C_Start();
+ 145   1          I2C_Write((EEPROM_ADDRESS <<1) | 0x00);
+ 146   1          I2C_Write(EEPROM_ADDRESS | ((page_address & 0x07) << 1));
+ 147   1          I2C_Write(page_address);
+ 148   1          I2C_Write(page_offset);
+ 149   1          I2C_Write(Data);
+ 150   1          I2C_Stop();
+ 151   1      }
+ 152          
+ 153          unsigned char EEPROM_ReadByte(unsigned char address) {
+*** WARNING C235 IN LINE 153 OF EEPROM.c: parameter 1: different types
+ 154   1          unsigned char page_address = address / PAGE_SIZE;
+ 155   1          unsigned char page_offset = address % PAGE_SIZE;
+ 156   1          unsigned char Data;
+ 157   1      
+ 158   1          I2C_Start();
+ 159   1          I2C_Write((EEPROM_ADDRESS <<1) | 0x00);
+ 160   1          I2C_Write(EEPROM_ADDRESS | ((page_address & 0x07) << 1));
+ 161   1          I2C_Write(page_address);
+ 162   1          I2C_Write(page_offset);
+ 163   1      
+ 164   1          I2C_Start();
+ 165   1          I2C_Write((EEPROM_ADDRESS <<1) | 0x01);
+ 166   1          I2C_Write(EEPROM_ADDRESS | ((page_address & 0x07) << 1) | 0x01);
+ 167   1          Data = I2C_ReadACK();
+ 168   1          I2C_Stop();
+ 169   1      
+ 170   1          return Data;
+ 171   1      }
+ 172          
+ 173           
+ 174          
+
+C51 COMPILER V9.60.7.0   EEPROM                                                            08/17/2023 15:50:47 PAGE 4   
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    253    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       5
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  3 WARNING(S),  0 ERROR(S)

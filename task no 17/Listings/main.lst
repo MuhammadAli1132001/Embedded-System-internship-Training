@@ -1,0 +1,226 @@
+C51 COMPILER V9.60.7.0   MAIN                                                              08/25/2023 14:47:36 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c LARGE OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listing
+                    -s\main.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <reg51.h>
+   2          #include <stdio.h>
+   3          #include <intrins.h>
+   4          #include "LCDh.h"
+   5          
+   6          sbit ds18b20 = P3^7;                  // Define the 1-wire bus pin connection
+   7          
+   8          // Function prototypes
+   9          unsigned char reset();
+  10          void ow_write_bit(unsigned char Bit);
+  11          unsigned char ow_read_bit();
+  12          void ow_write_byte(unsigned char byte);
+  13          unsigned char ow_read_byte();
+  14          float readTemperature();
+  15          
+  16          void delay_us(unsigned int us);
+  17          
+  18          
+  19          void main(){
+  20   1         float temperature;
+  21   1         char temperatureString[10];
+  22   1        
+  23   1         lcd_init();
+  24   1      
+  25   1        while(1)
+  26   1          {
+  27   2      
+  28   2            //init_ds18b20();
+  29   2                    
+  30   2            temperature = readTemperature();
+  31   2            sprintf(temperatureString, "%.2f", temperature);
+  32   2            
+  33   2            //clear_lcd();
+  34   2            lcd_set_cursor(0,0);
+  35   2            lcd_write_string("tempreture");
+  36   2            
+  37   2            lcd_set_cursor(1,0);
+  38   2            lcd_write_string(temperatureString);
+  39   2            delay_ms(1000);
+  40   2        }
+  41   1        
+  42   1      }
+  43          
+  44          
+  45          
+  46          unsigned char reset()
+  47          {
+  48   1            unsigned char presence=0;
+  49   1            
+  50   1            ds18b20 = 1;
+  51   1            delay_us(8);
+  52   1            
+  53   1            ds18b20 = 0;
+  54   1            delay_us(80);
+C51 COMPILER V9.60.7.0   MAIN                                                              08/25/2023 14:47:36 PAGE 2   
+
+  55   1      
+  56   1            ds18b20 = 1;
+  57   1            delay_us(14);
+  58   1      
+  59   1          presence = ds18b20;
+  60   1             delay_us(20);
+  61   1      
+  62   1            return presence;
+  63   1      }
+  64          
+  65          
+  66          void ow_write_bit(unsigned char Bit)
+  67           {
+  68   1           ds18b20 = 0;   
+  69   1            delay_us(2);
+  70   1         
+  71   1             ds18b20 = Bit;   
+  72   1      
+  73   1           ds18b20 = 1;
+  74   1            delay_us(65);
+  75   1        } 
+  76              
+  77          
+  78          
+  79          unsigned char ow_read_bit()
+  80          {
+  81   1          unsigned char bit_value=0;
+  82   1      
+  83   1          ds18b20 = 0;
+  84   1               delay_us(15);
+  85   1      
+  86   1          ds18b20 = 1;
+  87   1               delay_us(15);
+  88   1        
+  89   1          bit_value = ds18b20;
+  90   1               //delay_us(60);
+  91   1      
+  92   1          return bit_value;
+  93   1      }
+  94          
+  95          void ow_write_byte(unsigned char byte)
+  96          {
+  97   1          unsigned char i;
+  98   1      
+  99   1          for (i = 0; i < 8; i++)
+ 100   1          {
+ 101   2              ow_write_bit(byte & 0x01); 
+ 102   2              byte >>= 1;
+ 103   2          }
+ 104   1          
+ 105   1          delay_us(10);
+ 106   1      
+ 107   1      }
+ 108          
+ 109          unsigned char ow_read_byte()
+ 110          {
+ 111   1          unsigned char i, byte_value = 0;
+ 112   1      
+ 113   1          for (i = 0; i < 8; i++)
+ 114   1          {
+ 115   2           // ds18b20 = 0;
+ 116   2      
+C51 COMPILER V9.60.7.0   MAIN                                                              08/25/2023 14:47:36 PAGE 3   
+
+ 117   2            byte_value >>= 1;
+ 118   2            //ds18b20 = 1;
+ 119   2      
+ 120   2              if (ow_read_bit())
+ 121   2              {
+ 122   3                  byte_value |= 0x80;
+ 123   3                  delay_us(5);
+ 124   3      
+ 125   3              }
+ 126   2          }
+ 127   1      
+ 128   1          return byte_value;
+ 129   1      }
+ 130          
+ 131          float readTemperature()
+ 132          {
+ 133   1          unsigned char temp_lsb, temp_msb;
+ 134   1          float temperature;
+ 135   1          int temp_val;
+ 136   1          char temp_buffer[2];
+ 137   1      
+ 138   1           reset();
+ 139   1      //    {
+ 140   1      //       
+ 141   1      //        return -9.0;  // Presence pulse not detected Return an error
+ 142   1      //    }
+ 143   1      
+ 144   1          ow_write_byte(0xCC);
+ 145   1          ow_write_byte(0x44);
+ 146   1      
+ 147   1          delay_ms(750);    //750 ms for 12-bit resolution
+ 148   1      
+ 149   1          reset();
+ 150   1      
+ 151   1          ow_write_byte(0xCC);
+ 152   1          ow_write_byte(0xBE);    // Read Scratchpad
+ 153   1      
+ 154   1      
+ 155   1          // Read the temperature data (LSB and MSB)
+ 156   1          temp_buffer[0] = ow_read_byte();
+ 157   1          temp_buffer[1] = ow_read_byte();
+ 158   1      
+ 159   1          temp_val = (temp_buffer[0] << 8) | temp_buffer[1];                          //  temperature value cal
+ 160   1          temp_val = (0x02 << 8) | 0x01;                          //  temperature value cal
+ 161   1      
+ 162   1           temperature = (float)temp_val * 0.0625;                      // Convert the raw temperature value to 
+             -Celsius
+ 163   1      
+ 164   1      
+ 165   1          return temperature;
+ 166   1      }
+*** WARNING C280 IN LINE 133 OF main.c: 'temp_lsb': unreferenced local variable
+*** WARNING C280 IN LINE 133 OF main.c: 'temp_msb': unreferenced local variable
+ 167          
+ 168          
+ 169          //void temp_conversion_to_digite(unsigned char t, unsigned char d)
+ 170          //  {
+ 171          //    
+ 172          //  }
+ 173          
+ 174            void delay_ms(unsigned int ms)
+ 175          {
+C51 COMPILER V9.60.7.0   MAIN                                                              08/25/2023 14:47:36 PAGE 4   
+
+ 176   1          unsigned int i, j;
+ 177   1          for (i = 0; i < ms; i++)
+ 178   1          {
+ 179   2              for (j = 0; j < 114; j++)
+ 180   2              {
+ 181   3              }
+ 182   2          }
+ 183   1      }
+ 184          
+ 185          void delay_us(unsigned int us)
+ 186          {
+ 187   1      
+ 188   1          while(us--)
+ 189   1            {
+ 190   2              _nop_();
+ 191   2          }
+ 192   1      }
+ 193          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    428    ----
+   CONSTANT SIZE    =     16    ----
+   XDATA SIZE       =   ----      24
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  2 WARNING(S),  0 ERROR(S)

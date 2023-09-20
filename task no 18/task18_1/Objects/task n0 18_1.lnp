@@ -1,0 +1,4 @@
+".\Objects\EEPROM.obj",
+".\Objects\lcdC.obj" 
+TO ".\Objects\task n0 18_1" 
+PRINT(".\Listings\task n0 18_1.m51") RAMSIZE(256) 

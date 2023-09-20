@@ -1,0 +1,114 @@
+<html>
+<body>
+<pre>
+<h1>µVision Build Log</h1>
+<h2>Tool Versions:</h2>
+IDE-Version: µVision V5.38.0.0
+Copyright (C) 2022 ARM Ltd and ARM Germany GmbH. All rights reserved.
+License Information: Muhammad Ali, Chip Soul, LIC=MPYH9-48T89-WQ10S-LJEZL-YESB6-GJHQB
+ 
+Tool Versions:
+Toolchain:       PK51 Prof. Developers Kit  Version: 9.60.7.0
+Toolchain Path:  C:\Keil_v5\C51\BIN
+C Compiler:      C51.exe V9.60.7.0
+Assembler:       A51.exe V8.2.7.0
+Linker/Locator:  BL51.exe V6.22.4.0
+Library Manager: LIB51.exe V4.30.1.0
+Hex Converter:   OH51.exe V2.7.0.0
+CPU DLL:         S8051.DLL V3.125.1.0
+Dialog DLL:      DP51.DLL V2.69.0.0 
+<h2>Project:</h2>
+C:\Keil_v5\C51\Examples\HELLO\Objects\task 19\part c\statmachine.uvproj
+Project File Date:  08/21/2023
+
+<h2>Output:</h2>
+Rebuild target 'Target 1'
+compiling main.c...
+main.c(151): warning C182: pointer to different objects
+main.c(151): warning C182: pointer to different objects
+main.c(151): warning C182: pointer to different objects
+main.c(167): warning C182: pointer to different objects
+main.c(172): warning C182: pointer to different objects
+compiling lcd.c...
+compiling temprature_monitor.c...
+temprature_monitor.c(123): warning C280: 'temp_lsb': unreferenced local variable
+temprature_monitor.c(123): warning C280: 'temp_msb': unreferenced local variable
+compiling calculator.c...
+compiling RTC.c...
+RTC.c(34): warning C182: pointer to different objects
+RTC.c(34): warning C182: pointer to different objects
+RTC.c(34): warning C182: pointer to different objects
+RTC.c(50): warning C182: pointer to different objects
+RTC.c(55): warning C182: pointer to different objects
+RTC.c(194): warning C235: parameter 1: different types
+RTC.c(194): warning C235: parameter 2: different types
+RTC.c(194): warning C235: parameter 3: different types
+RTC.c(203): warning C235: parameter 1: different types
+RTC.c(203): warning C235: parameter 2: different types
+RTC.c(203): warning C235: parameter 3: different types
+linking...
+*** ERROR L104: MULTIPLE PUBLIC DEFINITIONS
+    SYMBOL:  PROCESSTEMPERATUREMONITOR
+    MODULE:  .\Objects\temprature_monitor.obj (TEMPRATURE_MONITOR)
+*** ERROR L104: MULTIPLE PUBLIC DEFINITIONS
+    SYMBOL:  S
+    MODULE:  .\Objects\calculator.obj (CALCULATOR)
+*** ERROR L104: MULTIPLE PUBLIC DEFINITIONS
+    SYMBOL:  S3
+    MODULE:  .\Objects\calculator.obj (CALCULATOR)
+*** ERROR L104: MULTIPLE PUBLIC DEFINITIONS
+    SYMBOL:  S2
+    MODULE:  .\Objects\calculator.obj (CALCULATOR)
+*** ERROR L104: MULTIPLE PUBLIC DEFINITIONS
+    SYMBOL:  S1
+    MODULE:  .\Objects\calculator.obj (CALCULATOR)
+*** ERROR L104: MULTIPLE PUBLIC DEFINITIONS
+    SYMBOL:  GETANDDISPLAYKEYSFORCALCULATOR
+    MODULE:  .\Objects\calculator.obj (CALCULATOR)
+*** ERROR L104: MULTIPLE PUBLIC DEFINITIONS
+    SYMBOL:  PROCESSREALTIMECLOCK
+    MODULE:  .\Objects\RTC.obj (RTC)
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?PROCESSTEMPERATUREMONITOR?TEMPRATURE_MONITOR
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?GETANDDISPLAYKEYSFORCALCULATOR?CALCULATOR
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?PROCESSREALTIMECLOCK?RTC
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_READ_BYTE?RTC
+*** WARNING L16: UNCALLED SEGMENT, IGNORED FOR OVERLAY PROCESS
+    SEGMENT: ?PR?_DS1302_SETDATE?RTC
+*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
+    SYMBOL:  _DS1302_GETDATE
+    MODULE:  .\Objects\main.obj (MAIN)
+*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
+    SYMBOL:  ?_DS1302_GETDATE?BYTE
+    MODULE:  .\Objects\main.obj (MAIN)
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  ?_DS1302_GETDATE?BYTE
+    MODULE:  .\Objects\main.obj (MAIN)
+    ADDRESS: 0FBAH
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  _DS1302_GETDATE
+    MODULE:  .\Objects\main.obj (MAIN)
+    ADDRESS: 0FDAH
+*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
+    SYMBOL:  _DS1302_GETDATE
+    MODULE:  .\Objects\RTC.obj (RTC)
+*** WARNING L1: UNRESOLVED EXTERNAL SYMBOL
+    SYMBOL:  ?_DS1302_GETDATE?BYTE
+    MODULE:  .\Objects\RTC.obj (RTC)
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  ?_DS1302_GETDATE?BYTE
+    MODULE:  .\Objects\RTC.obj (RTC)
+    ADDRESS: 1116H
+*** WARNING L2: REFERENCE MADE TO UNRESOLVED EXTERNAL
+    SYMBOL:  _DS1302_GETDATE
+    MODULE:  .\Objects\RTC.obj (RTC)
+    ADDRESS: 1136H
+Program Size: data=15.1 xdata=478 code=6789
+Target not created.
+Build Time Elapsed:  00:00:01
+</pre>
+</body>
+</html>

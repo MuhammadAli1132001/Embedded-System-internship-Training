@@ -1,0 +1,135 @@
+C51 COMPILER V9.60.7.0   MAIN                                                              09/08/2023 17:00:59 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <reg51.h>
+   2          #include "lcd.h" 
+   3          
+   4          
+   5          #define PD0 0
+   6          #define PD1 1
+   7          #define SER_DFR 2
+   8          #define MODE 3
+   9          #define A0 4
+  10          #define A1 5
+  11          #define A2 6
+  12          #define START 7
+  13          
+  14          
+  15          sbit Din = P3^4;
+  16          sbit cs = P3^5;
+  17          sbit Dclk = P3^6;
+  18          sbit Dout = P3^7;
+  19          
+  20          sbit in_0 = P3^0;
+  21          sbit in_1 = P3^1;
+  22          void delay_us(unsigned int t){
+  23   1        
+  24   1        while (t--);
+  25   1      }
+  26          void ADC_init()
+  27          {
+  28   1        
+  29   1        cs = 1;
+  30   1        Dclk = 0;
+  31   1        delay_us(1);
+  32   1        cs = 0;
+  33   1        delay_us(100);
+  34   1        Dclk = 0; 
+  35   1        
+  36   1      }
+  37          
+  38          
+  39          void ADC_send()
+  40          {
+  41   1        
+  42   1        Din = 0x9C;
+  43   1        in_0 = 0;
+  44   1        in_1 = 5;
+  45   1        
+  46   1      }
+  47          
+  48          
+  49          unsigned char ADC_readdata()
+  50          {
+  51   1        unsigned char i,byte = 0;
+  52   1        
+  53   1          Dclk= 0;
+  54   1          delay_ms(1);
+C51 COMPILER V9.60.7.0   MAIN                                                              09/08/2023 17:00:59 PAGE 2   
+
+  55   1            
+  56   1          byte>>1;
+*** WARNING C275 IN LINE 56 OF main.c: expression with possibly no effect
+  57   1          
+  58   1          for (i = 1; i<12; i++){
+  59   2            
+  60   2            byte = Dout | 0X08;
+  61   2            
+  62   2          }
+  63   1          
+  64   1          return byte;
+  65   1      }
+  66          
+  67          unsigned char createControlWord(unsigned char channel, unsigned char mode, unsigned char ser_dfr, unsigned
+             - char pd1, unsigned char pd0) {
+  68   1          unsigned char controlWord = 0;
+  69   1      
+  70   1                                                                   // Set individual bits in the control word by
+             -te
+  71   1          controlWord |= (1 << START);                                      // Set the START_BIT to indicate the
+             - start of the control byte
+  72   1          controlWord |= (channel << A0);                      // Set the channel bits (A2, A1, A0)
+  73   1          controlWord |= (mode << MODE);                        // Set the MODE bit
+  74   1          controlWord |= (ser_dfr << SER_DFR);                       // Set the SER/DFR bit
+  75   1          controlWord |= (pd1 << PD1);                         // Set PD1 bit
+  76   1          controlWord |= (pd0 << PD0);                          // Set PD0 bit
+  77   1      
+  78   1          return controlWord;
+  79   1      }
+  80          
+  81          void main() {
+  82   1        
+  83   1        unsigned char controlWord;
+  84   1        unsigned char readbyte;
+  85   1      
+  86   1        controlWord = createControlWord(2, 0, 1, 0, 0);//Example:Create a control word for Channel 2,12-bit mode
+             -,single-ended reference,PD1=0, PD0=0
+  87   1      
+  88   1        lcd_init();
+  89   1        ADC_init();  
+  90   1        
+  91   1        while(1)
+  92   1        {
+  93   2          
+  94   2          readbyte = ADC_readdata(); 
+  95   2          lcd_write_data(readbyte);
+  96   2          
+  97   2        }
+  98   1      }
+  99          
+ 100          
+ 101          
+ 102              
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    136    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       8
+   IDATA SIZE       =   ----    ----
+C51 COMPILER V9.60.7.0   MAIN                                                              09/08/2023 17:00:59 PAGE 3   
+
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  1 WARNING(S),  0 ERROR(S)

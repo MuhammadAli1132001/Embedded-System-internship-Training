@@ -1,0 +1,7 @@
+".\Objects\main.obj",
+".\Objects\lcd.obj",
+".\Objects\temprature_monitor.obj",
+".\Objects\calculator.obj",
+".\Objects\RTC.obj" 
+TO ".\Objects\statmachine" 
+PRINT(".\Listings\statmachine.m51") RAMSIZE(256) 

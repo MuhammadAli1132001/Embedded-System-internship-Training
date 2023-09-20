@@ -1,0 +1,212 @@
+C51 COMPILER V9.60.7.0   CALCULATOR                                                        08/23/2023 20:38:07 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE CALCULATOR
+OBJECT MODULE PLACED IN .\Objects\calculator.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE calculator.c LARGE OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\L
+                    -istings\calculator.lst) TABS(2) OBJECT(.\Objects\calculator.obj)
+
+line level    source
+
+   1          #include <reg51.h>
+   2          #include "lcd.h"
+   3          
+   4          
+   5          void disp_num(float num);
+   6          int get_num(char ch);
+   7          
+   8          char scan_key(void);
+   9          unsigned char s[30]={"ENTER 1 NO= "};
+  10          unsigned char s1[30]={"ENTER 2 NO= "};
+  11          unsigned char s2[30]={"OPERATOR = "};
+  12          unsigned char s3[30]={"Result = "};
+  13          
+  14          //sfr ldata = 0xA0;
+  15          sbit rs = P2^6;
+  16          sbit rw = P2^5;
+  17          sbit en = P2^7;
+  18          
+  19          sbit r0=P1^0;
+  20          sbit r1=P1^1;
+  21          sbit r2=P1^2;
+  22          sbit r3=P1^3;
+  23          sbit c0=P1^4;
+  24          sbit c1=P1^5;
+  25          sbit c2=P1^6;
+  26          sbit c3=P1^7;
+  27          
+  28          
+  29          int getAndDisplayKeysForCalculator()
+  30            {
+  31   1          
+  32   1         while(1){
+  33   2         unsigned int k=0,m=0,n=0,r=0;
+  34   2         int k2,k1;
+  35   2         char key,key1;
+  36   2         unsigned char ch2;
+  37   2           
+  38   2            lcd_init();
+  39   2            
+  40   2            while(s[k]!='\0')
+  41   2            {
+  42   3            lcd_write_data(s[k]);
+  43   3            k++;
+  44   3            }
+  45   2            key=scan_key();
+  46   2            k2=get_num(key);
+  47   2            lcd_write_data(key);
+  48   2            lcd_clear();
+  49   2            
+  50   2            while(s2[n]!='\0')
+  51   2            {
+  52   3            lcd_write_data(s2[n]);
+  53   3            n++;
+  54   3            }
+C51 COMPILER V9.60.7.0   CALCULATOR                                                        08/23/2023 20:38:07 PAGE 2   
+
+  55   2            ch2=scan_key();
+  56   2            lcd_write_data(ch2);
+  57   2            lcd_clear();
+  58   2            
+  59   2            while(s1[m]!='\0')
+  60   2            {
+  61   3            lcd_write_data(s1[m]);
+  62   3            m++;
+  63   3            }
+  64   2            key1=scan_key();
+  65   2            k1=get_num(key1);
+  66   2            lcd_write_data(key1);
+  67   2            lcd_clear();
+  68   2            
+  69   2            while(s3[r]!='\0')
+  70   2            {
+  71   3            lcd_write_data(s3[r]);
+  72   3            r++;
+  73   3            }
+  74   2            
+  75   2            switch(ch2)
+  76   2            {
+  77   3              case '+':
+  78   3              disp_num(k1+k2);
+  79   3              break;
+  80   3              case '-':
+  81   3              disp_num(k2-k1);
+  82   3              break;
+  83   3              case '*':
+  84   3              disp_num(k2*k1);
+  85   3              break;
+  86   3              case '/':
+  87   3              disp_num(k2/k1);
+  88   3              break;
+  89   3           }
+  90   2            return 0;
+  91   2          }
+  92   1        }
+  93          
+  94          
+  95          char scan_key() {
+  96   1          char keyPressed = '\0';
+  97   1      
+  98   1          while (!(keyPressed == '0' || keyPressed == '1' || keyPressed == '2' || keyPressed == '3' ||
+  99   1                   keyPressed == '4' || keyPressed == '5' || keyPressed == '6' || keyPressed == '7' ||
+ 100   1                   keyPressed == '8' || keyPressed == '9' || keyPressed == '+' || keyPressed == '-' ||
+ 101   1                   keyPressed == '=' || keyPressed == 'C' || keyPressed == '*' || keyPressed == '/')) {
+ 102   2      
+ 103   2              r0 = 0; r1 = 1; r2 = 1; r3 = 1;
+ 104   2              if (c0 == 0 && r0 == 0) { keyPressed = '+'; }
+ 105   2              if (c1 == 0 && r0 == 0) { keyPressed = '-'; }
+ 106   2              if (c2 == 0 && r0 == 0) { keyPressed = '*'; }
+ 107   2              if (c3 == 0 && r0 == 0) { keyPressed = '/'; }
+ 108   2      
+ 109   2              r0 = 1; r1 = 0; r2 = 1; r3 = 1;
+ 110   2              if (c0 == 0 && r1 == 0) { keyPressed = '='; }
+ 111   2              if (c1 == 0 && r1 == 0) { keyPressed = '3'; }
+ 112   2              if (c2 == 0 && r1 == 0) { keyPressed = '6'; }
+ 113   2              if (c3 == 0 && r1 == 0) { keyPressed = '9'; }
+ 114   2      
+ 115   2              r0 = 1; r1 = 1; r2 = 0; r3 = 1;
+ 116   2              if (c0 == 0 && r2 == 0) { keyPressed = '0'; }
+C51 COMPILER V9.60.7.0   CALCULATOR                                                        08/23/2023 20:38:07 PAGE 3   
+
+ 117   2              if (c1 == 0 && r2 == 0) { keyPressed = '2'; }
+ 118   2              if (c2 == 0 && r2 == 0) { keyPressed = '5'; }
+ 119   2              if (c3 == 0 && r2 == 0) { keyPressed = '8'; }
+ 120   2      
+ 121   2              r0 = 1; r1 = 1; r2 = 1; r3 = 0;
+ 122   2              if (c0 == 0 && r3 == 0) { keyPressed = 'C'; }
+ 123   2              if (c1 == 0 && r3 == 0) { keyPressed = '1'; }
+ 124   2              if (c2 == 0 && r3 == 0) { keyPressed = '4'; }
+ 125   2              if (c3 == 0 && r3 == 0) { keyPressed = '7'; }
+ 126   2          }
+ 127   1      
+ 128   1          // Display the key on the LCD if needed
+ 129   1          lcd_write_data(keyPressed);
+ 130   1          delay_ms(1000);
+ 131   1      
+ 132   1          return keyPressed;
+ 133   1      }
+ 134          
+ 135          
+ 136          int get_num(char ch)         //convert char into int
+ 137          {
+ 138   1      switch(ch)
+ 139   1      {
+ 140   2      case '0': return 0; break;
+ 141   2      case '1': return 1; break;
+ 142   2      case '2': return 2; break;
+ 143   2      case '3': return 3; break;
+ 144   2      case '4': return 4; break;
+ 145   2      case '5': return 5; break;
+ 146   2      case '6': return 6; break;
+ 147   2      case '7': return 7; break;
+ 148   2      case '8': return 8; break;
+ 149   2      case '9': return 9; break;
+ 150   2      }
+ 151   1      return 0;
+ 152   1      }
+ 153          
+ 154          void disp_num(float num)            //displays number on LCD
+ 155          {
+ 156   1      unsigned char UnitDigit  = 0;  //It will contain unit digit of numb
+ 157   1      unsigned char TenthDigit = 0;  //It will contain 10th position digit of numb
+ 158   1      unsigned char decimal = 0;
+ 159   1      int j;
+ 160   1      int numb;
+ 161   1      j=(int)(num*10);
+ 162   1      numb=(int)num;
+ 163   1        
+ 164   1        if(numb<0)
+ 165   1          {
+ 166   2          numb = -1*numb;  // Make number positive
+ 167   2          lcd_write_data('-');  // Display a negative sign on LCD
+ 168   2          }
+ 169   1      
+ 170   1        TenthDigit = (numb/10);          // Findout Tenth Digit
+ 171   1      
+ 172   1        if( TenthDigit != 0)           // If it is zero, then don't display
+ 173   1          lcd_write_data(TenthDigit+0x30);   // Make Char of TenthDigit and then display it on LCD
+ 174   1      
+ 175   1          UnitDigit = numb - TenthDigit*10;
+ 176   1      
+ 177   1          lcd_write_data(UnitDigit+0x30);  // Make Char of UnitDigit and then display it on LCD
+ 178   1          lcd_write_data('.');
+C51 COMPILER V9.60.7.0   CALCULATOR                                                        08/23/2023 20:38:07 PAGE 4   
+
+ 179   1          decimal=(j%10)+0x30;
+ 180   1          lcd_write_data(decimal);
+ 181   1        delay_ms(20000);
+ 182   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =   1067    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =    120      27
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

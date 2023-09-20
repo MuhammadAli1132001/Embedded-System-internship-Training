@@ -1,0 +1,208 @@
+C51 COMPILER V9.60.7.0   MAIN                                                              08/17/2023 16:11:21 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN .\Objects\main.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE main.c OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings\main
+                    -.lst) TABS(2) OBJECT(.\Objects\main.obj)
+
+line level    source
+
+   1          #include <reg51.h>
+   2          #include <intrins.h>
+   3          #include "lcd.h"
+   4          #include <stdio.h>
+   5          
+   6          
+   7          #define EEPROM_ADDRESS 0xA0
+   8          
+   9          sbit SDA = P2^0; // I2C Data pin
+  10          sbit SCL = P2^1; // I2C Clock pin
+  11          
+  12          sbit disp_5 = P2^5;
+  13          sbit disp_4 = P2^4;
+  14          
+  15          typedef unsigned char uchar;
+  16          typedef unsigned int iint;
+  17          
+  18          void I2C_Init();
+  19          void I2C_Start();
+  20          void I2C_Stop();
+  21          void I2C_Write(uchar dat);
+  22          unsigned char I2C_ReadACK();
+  23          
+  24          void EEPROM_WriteByte(uchar address,uchar Data);
+  25          unsigned char EEPROM_ReadByte(uchar address);
+  26          
+  27          uchar counterLow = 0;
+  28          uchar counterHigh = 0;
+  29          
+  30          // I2C Start condition
+  31          void I2C_Start() {
+  32   1          SDA = 1;
+  33   1          _nop_();
+  34   1          SCL = 1;
+  35   1          _nop_();
+  36   1          SDA = 0;
+  37   1          _nop_();
+  38   1          SCL = 0;
+  39   1          _nop_();_nop_();
+  40   1      
+  41   1      }
+  42          
+  43          // I2C Stop condition
+  44          void I2C_Stop() {
+  45   1         
+  46   1          SDA = 0;
+  47   1          _nop_();_nop_();
+  48   1      
+  49   1          SCL = 1;
+  50   1          _nop_();_nop_();
+  51   1      
+  52   1          SDA = 1;
+  53   1          _nop_();_nop_();
+  54   1      
+C51 COMPILER V9.60.7.0   MAIN                                                              08/17/2023 16:11:21 PAGE 2   
+
+  55   1      }
+  56          
+  57          // I2C Initialization
+  58          void I2C_Init(){
+  59   1        
+  60   1          I2C_Start(); 
+  61   1          I2C_Stop();
+  62   1        
+  63   1      }
+  64          
+  65          
+  66          void I2C_Write(unsigned char dat) {
+  67   1          unsigned char i;
+  68   1        
+  69   1          for (i = 0; i < 8; i++) {
+  70   2              SDA = (dat & 0x80) ? 1 : 0;
+  71   2              _nop_();  _nop_();
+  72   2      
+  73   2              SCL = 1;
+  74   2              _nop_();
+  75   2              SCL = 0;
+  76   2              _nop_();      
+  77   2      
+  78   2              SCL = 0;
+  79   2              dat <<= 1;
+  80   2      
+  81   2          }
+  82   1      
+  83   1          // Wait for ACK from the slave
+  84   1          SDA = 1;
+  85   1          _nop_();
+  86   1          SCL = 1;
+  87   1          _nop_();
+  88   1          SCL = 0;
+  89   1      }
+  90          
+  91          unsigned char I2C_ReadACK() {
+  92   1          uchar i, dat = 0;
+  93   1          
+  94   1          SDA = 1;
+  95   1          for (i = 0; i < 8; i++) {
+  96   2              _nop_();
+  97   2              SCL = 1;
+  98   2              _nop_();
+  99   2              dat = (dat << 1) | SDA;
+ 100   2              SCL = 0;
+ 101   2          }
+ 102   1      
+ 103   1      //    SDA = 0;                         // Send ACK
+ 104   1      //    _nop_();
+ 105   1      //    SCL = 1;
+ 106   1      //    _nop_();
+ 107   1      //    SCL = 0;
+ 108   1          return dat;
+ 109   1      }
+ 110          
+ 111          
+ 112          
+ 113          void EEPROM_WriteByte(uchar address, uchar Data) {
+ 114   1          
+ 115   1      
+ 116   1          I2C_Start();
+C51 COMPILER V9.60.7.0   MAIN                                                              08/17/2023 16:11:21 PAGE 3   
+
+ 117   1          I2C_Write(EEPROM_ADDRESS);
+ 118   1         // I2C_Write(EEPROM_ADDRESS | ((page_address & 0x07) << 1));
+ 119   1          I2C_Write(address);
+ 120   1          I2C_Write(Data);
+ 121   1          I2C_Stop();
+ 122   1        delay_ms(10);
+ 123   1      }
+ 124          
+ 125          unsigned char EEPROM_ReadByte(uchar address) {
+ 126   1          
+ 127   1          uchar Data;
+ 128   1      
+ 129   1          I2C_Start();
+ 130   1          I2C_Write(EEPROM_ADDRESS);
+ 131   1          I2C_Write(address);
+ 132   1        
+ 133   1          I2C_Start();
+ 134   1          I2C_Write(0xA0);
+ 135   1          Data = I2C_ReadACK();
+ 136   1          I2C_Stop();
+ 137   1      
+ 138   1          return Data;
+ 139   1      }
+ 140          
+ 141          void displaynumber(uchar num){
+ 142   1        uchar digitPatterns[] = {
+ 143   1          0x3F, // 0b00111111 - 0
+ 144   1          0x06, // 0b00000110 - 1
+ 145   1          0x5B, // 0b01011011 - 2
+ 146   1          0x4F, // 0b01001111 - 3
+ 147   1          0x66, // 0b01100110 - 4
+ 148   1          0x6D, // 0b01101101 - 5
+ 149   1          0x7D, // 0b01111101 - 6
+ 150   1          0x07, // 0b00000111 - 7
+ 151   1          0x7F, // 0b01111111 - 8
+ 152   1          0x6F  // 0b01101111 - 9
+ 153   1      
+ 154   1      };
+ 155   1      
+ 156   1        disp_5 = 0;
+ 157   1      
+ 158   1        P0 = digitPatterns[num];
+ 159   1      
+ 160   1      }
+ 161          
+ 162          void main() {
+ 163   1          
+ 164   1        
+ 165   1          while(1){
+ 166   2            
+ 167   2            displaynumber(counterLow);
+ 168   2            counterLow++;
+ 169   2            
+ 170   2            EEPROM_WriteByte(0x00, counterHigh);
+ 171   2            EEPROM_WriteByte(0x01, counterLow);
+ 172   2      
+ 173   2      
+ 174   2       delay_ms(1000);
+ 175   2      
+ 176   2        }
+ 177   1      }
+ 178          
+C51 COMPILER V9.60.7.0   MAIN                                                              08/17/2023 16:11:21 PAGE 4   
+
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    209    ----
+   CONSTANT SIZE    =     10    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      2      11
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
