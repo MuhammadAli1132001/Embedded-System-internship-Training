@@ -1,0 +1,105 @@
+C51 COMPILER V9.60.7.0   I2C                                                               09/21/2023 15:53:39 PAGE 1   
+
+
+C51 COMPILER V9.60.7.0, COMPILATION OF MODULE I2C
+OBJECT MODULE PLACED IN .\Objects\i2c.obj
+COMPILER INVOKED BY: C:\Keil_v5\C51\BIN\C51.EXE i2c.c LARGE OPTIMIZE(8,SPEED) BROWSE DEBUG OBJECTEXTEND PRINT(.\Listings
+                    -\i2c.lst) TABS(2) OBJECT(.\Objects\i2c.obj)
+
+line level    source
+
+   1          #include "i2c.h" 
+   2          
+   3          sbit SDA = P3^5;
+   4          sbit SCL = P3^4;
+   5          
+   6          // Generate a start condition on the I2C bus
+   7          void i2c_start() {
+   8   1          SDA = 1; // Set SDA line high
+   9   1          _nop_(); // Small delay
+  10   1          SCL = 1; // Set SCL line high
+  11   1          _nop_(); // Small delay
+  12   1          SDA = 0; // Generate a low-to-high transition on SDA while SCL is high (start condition)
+  13   1          _nop_(); // Small delay
+  14   1          SCL = 0; // Release SCL line
+  15   1      }
+  16          
+  17          // Generate a stop condition on the I2C bus
+  18          void i2c_stop() {
+  19   1          SDA = 0; // Set SDA line low
+  20   1          _nop_(); // Small delay
+  21   1          SCL = 1; // Set SCL line high
+  22   1          _nop_(); // Small delay
+  23   1          SDA = 1; // Generate a low-to-high transition on SDA while SCL is high (stop condition)
+  24   1          _nop_(); // Small delay
+  25   1      }
+  26          
+  27          // Write a byte of Data to the I2C bus
+  28          void i2c_write(unsigned char  Data) {
+  29   1          unsigned char  i;
+  30   1          for (i = 0; i < 8; i++) {
+  31   2              if (Data & 0x80) // Check the MSB of the Data
+  32   2                  SDA = 1; // Set SDA line high
+  33   2              else
+  34   2                  SDA = 0; // Set SDA line low
+  35   2      
+  36   2              _nop_(); // Small delay
+  37   2              SCL = 1; // Set SCL line high
+  38   2              _nop_(); // Small delay
+  39   2              SCL = 0; // Release SCL line
+  40   2              Data <<= 1; // Shift Data to the left
+  41   2          }
+  42   1      }
+  43          
+  44          // Read Data byte from I2C bus with ACK
+  45          unsigned char  i2c_read_ack() {
+  46   1          unsigned char  i, Data = 0;
+  47   1          SDA = 1; // Set SDA line high
+  48   1          for (i = 0; i < 8; i++) {
+  49   2              _nop_(); // Small delay
+  50   2              SCL = 1; // Set SCL line high
+  51   2              _nop_(); // Small delay
+  52   2              Data <<= 1; // Shift Data to the left
+  53   2              if (SDA)
+  54   2                  Data |= 1; // Set the LSB of Data if SDA is high
+C51 COMPILER V9.60.7.0   I2C                                                               09/21/2023 15:53:39 PAGE 2   
+
+  55   2              SCL = 0; // Release SCL line
+  56   2          }
+  57   1          return Data;
+  58   1      }
+  59          
+  60          // Read Data byte from I2C bus with NACK
+  61          unsigned char  i2c_read_nack() {
+  62   1          unsigned char  i, Data = 0;
+  63   1          SDA = 1; // Set SDA line high
+  64   1          for (i = 0; i < 8; i++) {
+  65   2              _nop_(); // Small delay
+  66   2              SCL = 1; // Set SCL line high
+  67   2              _nop_(); // Small delay
+  68   2              Data <<= 1; // Shift Data to the left
+  69   2              if (SDA)
+  70   2                  Data |= 1; // Set the LSB of Data if SDA is high
+  71   2              SCL = 0; // Release SCL line
+  72   2          }
+  73   1          SDA = 0; // Set SDA line low for NACK
+  74   1          _nop_(); // Small delay
+  75   1          SCL = 1; // Set SCL line high
+  76   1          _nop_(); // Small delay
+  77   1          SCL = 0; // Release SCL line
+  78   1          return Data;
+  79   1      }
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    112    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
