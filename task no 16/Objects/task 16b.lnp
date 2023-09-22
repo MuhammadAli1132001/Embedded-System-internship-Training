@@ -1,5 +1,0 @@
-".\Objects\main.obj",
-".\Objects\lcdC.obj",
-".\Objects\i2c.obj" 
-TO ".\Objects\task 16b" 
-PRINT(".\Listings\task 16b.m51") RAMSIZE(256) 
